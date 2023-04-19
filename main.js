@@ -1,113 +1,136 @@
-addNoteButton = document.getElementById('addNote');
-//get the canvas and ctx
-canvas = document.getElementById('canvas');
-ctx = canvas.getContext('2d');
-
-//set the canvas size to the window size but make it so there are no scroll bars
+const addNoteButton = document.getElementById('addNote');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+const notes = [];
 
-notes = [];
+// addNoteButton.addEventListener('click', () => {
+//     // add to the page using a multi-line template literal
+//   newNote();
+// });
 
-addNoteButton.addEventListener('click', function() {
-    newNote();
+addNoteButton.addEventListener('click', () => {
+    const title = prompt('Enter a title for your note:');
+    const text = prompt('Enter the content of your note:');
+    newNote(title, text);
 });
 
-function newNote() {
-    let x = Math.random() * (canvas.width - 200);
-    let y = Math.random() * (canvas.height - 200);
-    let note = new Note(x, y, 200, 200, '#ff0000', 'Title', 'Text');
+
+function newNote(title, text) {
+    const x = Math.random() * (canvas.width - 200);
+    const y = Math.random() * (canvas.height - 200);
+    const note = new Note(x, y, 200, 200, '#ff0000', title, text);
     notes.push(note);
 }
 
-class Note {
-    constructor(x, y, width, height, color, title, text) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.color = color;
-        this.title = title;
-        this.text = text;
-    }
+// function newNote() {
+//   const x = Math.random() * (canvas.width - 200);
+//   const y = Math.random() * (canvas.height - 200);
+//   const note = new Note(x, y, 200, 200, '#ff0000', 'Title', 'Text');
+//   notes.push(note);
+// }
 
-    draw() {
-        ctx.fillStyle = '#e0e0e0';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-        ctx.fillStyle = '#000000';
-        ctx.font = '20px Arial';
-        ctx.fillText(this.title, this.x + 10, this.y + 30);
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y + 40, this.width, 5);
-        ctx.fillStyle = '#000000';
-        ctx.font = '15px Arial';
-        ctx.fillText(this.text, this.x + 10, this.y + 70);
-        //draw a symbol to bump notes apart from each other when they are overlapping
-        ctx.beginPath();
-        ctx.moveTo(this.x + this.width - 10, this.y + this.height - 10);
-        ctx.lineTo(this.x + this.width - 5, this.y + this.height - 10);
-        ctx.lineTo(this.x + this.width - 10, this.y + this.height - 5);
-        ctx.lineTo(this.x + this.width - 10, this.y + this.height - 10);
-        ctx.fill();
-        this.symbol = {
-            x: this.x + this.width - 10,
-            y: this.y + this.height - 10
-        }
-    }
+class Note {
+  constructor(x, y, width, height, color, title, text) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.color = color;
+    this.title = title;
+    this.text = text;
+    this.symbol = {
+      x: this.x + this.width - 10,
+      y: this.y + this.height - 10
+    };
+  }
+
+  draw() {
+    ctx.fillStyle = '#e0e0e0';
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.fillStyle = '#000000';
+    ctx.font = '20px Arial';
+    ctx.fillText(this.title, this.x + 10, this.y + 30);
+    ctx.fillStyle = this.color;
+    ctx.fillRect(this.x, this.y + 40, this.width, 5);
+    ctx.fillStyle = '#000000';
+    ctx.font = '15px Arial';
+    ctx.fillText(this.text, this.x + 10, this.y + 70);
+    ctx.beginPath();
+    ctx.moveTo(this.x + this.width - 10, this.y + this.height - 10);
+    ctx.lineTo(this.x + this.width - 5, this.y + this.height - 10);
+    ctx.lineTo(this.x + this.width - 10, this.y + this.height - 5);
+    ctx.lineTo(this.x + this.width - 10, this.y + this.height - 10);
+    ctx.fill();
+  }
 }
 
-//make notes draggable
-canvas.addEventListener('mousedown', function(e) {
-    let mouse = {
+canvas.addEventListener('mousedown', (e) => {
+    const mouse = {
+      x: e.clientX,
+      y: e.clientY
+    };
+    let topmostNote = null;
+    for (let i = notes.length - 1; i >= 0; i--) {
+      if (
+        mouse.x > notes[i].x &&
+        mouse.x < notes[i].x + notes[i].width &&
+        mouse.y > notes[i].y &&
+        mouse.y < notes[i].y + notes[i].height
+      ) {
+        topmostNote = notes[i];
+        break;
+      }
+    }
+    if (topmostNote) {
+      const dx = mouse.x - topmostNote.x;
+      const dy = mouse.y - topmostNote.y;
+      canvas.addEventListener('mousemove', dragNote);
+      function dragNote(e) {
+        const mouse = {
+          x: e.clientX,
+          y: e.clientY
+        };
+        topmostNote.x = mouse.x - dx;
+        topmostNote.y = mouse.y - dy;
+      }
+      canvas.addEventListener('mouseup', () => {
+        canvas.removeEventListener('mousemove', dragNote);
+      });
+    }
+  });
+
+//doubble click to move note to top
+canvas.addEventListener('dblclick', (e) => {
+    const mouse = {
         x: e.clientX,
         y: e.clientY
-    }
-    for (let i = 0; i < notes.length; i++) {
-        if (mouse.x > notes[i].x && mouse.x < notes[i].x + notes[i].width && mouse.y > notes[i].y && mouse.y < notes[i].y + notes[i].height) {
-            let dx = mouse.x - notes[i].x;
-            let dy = mouse.y - notes[i].y;
-            canvas.addEventListener('mousemove', dragNote);
-            function dragNote(e) {
-                let mouse = {
-                    x: e.clientX,
-                    y: e.clientY
-                }
-                notes[i].x = mouse.x - dx;
-                notes[i].y = mouse.y - dy;
-            }
-            canvas.addEventListener('mouseup', function() {
-                canvas.removeEventListener('mousemove', dragNote);
-            });
+    };
+    let topmostNote = null;
+    for (let i = notes.length - 1; i >= 0; i--) {
+        if (
+            mouse.x > notes[i].x &&
+            mouse.x < notes[i].x + notes[i].width &&
+            mouse.y > notes[i].y &&
+            mouse.y < notes[i].y + notes[i].height
+        ) {
+            topmostNote = notes[i];
+            break;
         }
     }
-});
-
-//on note double click bump the note apart from other notes
-canvas.addEventListener('dblclick', function(e) {
-    let mouse = {
-        x: e.clientX,
-        y: e.clientY
-    }
-    for (let i = 0; i < notes.length; i++) {
-        if (mouse.x > notes[i].x && mouse.x < notes[i].x + notes[i].width && mouse.y > notes[i].y && mouse.y < notes[i].y + notes[i].height) {
-            notes[i].x = notes[i].symbol.x;
-            notes[i].y = notes[i].symbol.y;
-        }
+    if (topmostNote) {
+        notes.splice(notes.indexOf(topmostNote), 1);
+        notes.push(topmostNote);
     }
 });
-
-
-
 
 function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (let i = 0; i < notes.length; i++) {
-        notes[i].draw();
-         ctx.beginPath();
-         ctx.arc(notes[i].symbol.x, notes[i].symbol.y, 5, 0, Math.PI * 2, false);
-         ctx.fill();
-
-    }
-    requestAnimationFrame(animate);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = 0; i < notes.length; i++) {
+    notes[i].draw();
+  }
+  requestAnimationFrame(animate);
 }
+
 animate();
