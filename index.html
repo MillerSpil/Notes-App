@@ -16,31 +16,28 @@
     </nav>
     <canvas id="canvas"></canvas>
 
-    <div class="modal" id="addNoteModal">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Add Note</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label for="noteText" class="form-label">Note Text</label>
-                <input type="text" class="form-control" id="noteText">
-              </div>
-              <div class="mb-3">
-                <label for="noteColor" class="form-label">Note Color</label>
-                <input type="color" class="form-control" id="noteColor">
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="button" class="btn btn-primary" id="saveNote">Save</button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+      <form id="addNoteForm">
+        <label for="noteTitle">Note Title:</label>
+        <input class="form-control" type="text" id="noteTitle" name="noteTitle" required>
       
+        <label for="noteText">Node Text:</label>
+        <textarea class="form-control" id="noteText" name="noteText" rows="4" cols="50" required></textarea>
+      
+        <label for="noteColor">Note Color:</label>
+        <input type="color" id="noteColor" name="noteColor" value="#FF4A4A" list="colorList">
+        <datalist id="colorList">
+          <option value="#FF4A4A">Red</option>
+          <option value="#FFC14F">Orange</option>
+          <option value="#FFFF64">Yellow</option>
+          <option value="#448544">Green</option>
+          <option value="#4D4DFF">Blue</option>
+        </datalist>
+      
+        <button class="btn btn-primary" id="noteSubmit">Add Note</button>
+      </form>
+    </div>
+    
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
     <script src="main.js"></script>
@@ -60,5 +57,39 @@
     .navbar-brand {
         color: #fff !important;
     }
+
+    #addNoteForm {
+      background-color: #424242;
+      padding: 20px;
+      border-radius: 10px;
+      width: fit-content;
+      /* display: flex; */
+      display: none;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    #addNoteForm textarea {
+      height: 130px;
+    }
+    #noteColor {
+      width: 30px;
+      height: 30px;
+    }
+
+    #addNoteForm label,
+    #addNoteForm input,
+    #addNoteForm textarea {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+
 </style>
 </html>

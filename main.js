@@ -5,31 +5,32 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 const notes = [];
 
-// addNoteButton.addEventListener('click', () => {
-//     // add to the page using a multi-line template literal
-//   newNote();
-// });
-
 addNoteButton.addEventListener('click', () => {
-    const title = prompt('Enter a title for your note:');
-    const text = prompt('Enter the content of your note:');
-    newNote(title, text);
+  document.getElementById('addNoteForm').style.display = 'flex';
 });
 
+document.getElementById('noteSubmit').addEventListener('click', (event) => {
+  event.preventDefault();
+  const title = document.getElementById('noteTitle').value;
+  const text = document.getElementById('noteText').value;
+  const color = document.getElementById('noteColor').value;
+  if (title && text && color) {
+    newNote(title, text, color);
+    document.getElementById('addNoteForm').style.display = 'none';
+    document.getElementById('noteTitle').value = '';
+    document.getElementById('noteText').value = '';
+    document.getElementById('noteColor').value = '#FF4A4A';
+  }
+});
 
-function newNote(title, text) {
-    const x = Math.random() * (canvas.width - 200);
-    const y = Math.random() * (canvas.height - 200);
-    const note = new Note(x, y, 200, 200, '#ff0000', title, text);
-    notes.push(note);
+function newNote(title, text, color, x, y) {
+  if (!x && !y) {
+    x = Math.random() * (canvas.width - 200);
+    y = Math.random() * (canvas.height - 200);
+  }
+  const note = new Note(x, y, 200, 200, color, title, text);
+  notes.push(note);
 }
-
-// function newNote() {
-//   const x = Math.random() * (canvas.width - 200);
-//   const y = Math.random() * (canvas.height - 200);
-//   const note = new Note(x, y, 200, 200, '#ff0000', 'Title', 'Text');
-//   notes.push(note);
-// }
 
 class Note {
   constructor(x, y, width, height, color, title, text) {
@@ -40,13 +41,11 @@ class Note {
     this.color = color;
     this.title = title;
     this.text = text;
-    this.symbol = {
-      x: this.x + this.width - 10,
-      y: this.y + this.height - 10
-    };
   }
 
   draw() {
+    const symbolX = this.x + this.width - 10;
+    const symbolY = this.y + this.height - 10;
     ctx.fillStyle = '#e0e0e0';
     ctx.fillRect(this.x, this.y, this.width, this.height);
     ctx.fillStyle = '#000000';
@@ -57,14 +56,26 @@ class Note {
     ctx.fillStyle = '#000000';
     ctx.font = '15px Arial';
     ctx.fillText(this.text, this.x + 10, this.y + 70);
+
+    //draw x symbol
     ctx.beginPath();
-    ctx.moveTo(this.x + this.width - 10, this.y + this.height - 10);
-    ctx.lineTo(this.x + this.width - 5, this.y + this.height - 10);
-    ctx.lineTo(this.x + this.width - 10, this.y + this.height - 5);
-    ctx.lineTo(this.x + this.width - 10, this.y + this.height - 10);
-    ctx.fill();
+    ctx.moveTo(symbolX, symbolY);
+    ctx.lineTo(symbolX - 10, symbolY - 10);
+    ctx.moveTo(symbolX - 10, symbolY);
+    ctx.lineTo(symbolX, symbolY - 10);
+    ctx.stroke();
+
+    //draw edit symbol in the top right corner
+    ctx.beginPath();
+    ctx.moveTo(this.x + this.width - 10, this.y + 10);
+    ctx.lineTo(this.x + this.width - 20, this.y + 10);
+    ctx.lineTo(this.x + this.width - 20, this.y + 20);
+    ctx.lineTo(this.x + this.width - 10, this.y + 20);
+    ctx.lineTo(this.x + this.width - 10, this.y + 10);
+    ctx.stroke();
   }
 }
+
 
 canvas.addEventListener('mousedown', (e) => {
     const mouse = {
@@ -101,7 +112,6 @@ canvas.addEventListener('mousedown', (e) => {
     }
   });
 
-//doubble click to move note to top
 canvas.addEventListener('dblclick', (e) => {
     const mouse = {
         x: e.clientX,
@@ -134,3 +144,28 @@ function animate() {
 }
 
 animate();
+
+// before page reload, save notes to local storage
+window.addEventListener('beforeunload', () => {
+  localStorage.setItem('notes', JSON.stringify(notes));
+});
+
+// on page load, get notes from local storage
+window.addEventListener('load', () => {
+  const savedNotes = JSON.parse(localStorage.getItem('notes'));
+  if (savedNotes) {
+    for (let i = 0; i < savedNotes.length; i++) {
+      const note = savedNotes[i];
+      if (note.x >= canvas.width || note.x <= 0){
+        note.x = Math.random() * (canvas.width - 200);
+        note.y = Math.random() * (canvas.height - 200);
+      }
+      if (note.y >= canvas.height || note.y <= 0){
+        note.x = Math.random() * (canvas.width - 200);
+        note.y = Math.random() * (canvas.height - 200);
+      }
+      newNote(note.title, note.text, note.color, note.x, note.y);
+    }
+  }
+});
+
