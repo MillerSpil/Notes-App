@@ -1,14 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Noturly</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
 </head>
 <body>
-    <nav class="navbar bg-body-tertiary">
+    <nav class="navbar">
         <div class="container-fluid">
           <span class="navbar-brand">Noturly</span>
           <button type="button" class="btn btn-warning" id="addNote">Add Note</button>
@@ -16,16 +13,15 @@
     </nav>
     <canvas id="canvas"></canvas>
 
-    <div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+    <!-- Add Note Form -->
+    <div>
       <form id="addNoteForm">
         <label for="noteTitle">Note Title:</label>
-        <input class="form-control" type="text" id="noteTitle" name="noteTitle" required>
-      
+        <input class="form-control" type="text" id="noteTitle" required>
         <label for="noteText">Node Text:</label>
-        <textarea class="form-control" id="noteText" name="noteText" rows="4" cols="50" required></textarea>
-      
+        <textarea class="form-control" id="noteText" rows="4" cols="50" required></textarea>
         <label for="noteColor">Note Color:</label>
-        <input type="color" id="noteColor" name="noteColor" value="#FF4A4A" list="colorList">
+        <input type="color" id="noteColor" value="#FF4A4A" list="colorList">
         <datalist id="colorList">
           <option value="#FF4A4A">Red</option>
           <option value="#FFC14F">Orange</option>
@@ -33,10 +29,27 @@
           <option value="#448544">Green</option>
           <option value="#4D4DFF">Blue</option>
         </datalist>
-      
-        <button class="btn btn-primary" id="noteSubmit">Add Note</button>
+        <button class="btn btn-primary" id="noteSubmit">Submit Note</button>
       </form>
     </div>
+
+    <!-- Confirm Form -->
+    <div>
+      <form id="confirmForm" class="text-center">
+        <h3>Confirm Change</h3>
+        <button class="btn btn-primary" id="changeConfirm">Confirm</button>
+        <button class="btn btn-danger" id="changeDecline">Decline</button>
+      </form>
+    </div>
+
+    <div id="custom-menu" style="display:none; position:absolute;">
+      <ul>
+        <li>Menu Item 1</li>
+        <li>Menu Item 2</li>
+        <li>Menu Item 3</li>
+      </ul>
+    </div>
+    
     
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
@@ -51,23 +64,20 @@
     }
 
     .navbar {
-        background-color: #1b1b1b !important;
+        background-color: #1b1b1b;
     }
 
     .navbar-brand {
-        color: #fff !important;
+        color: #fff;
     }
 
     #addNoteForm {
       background-color: #424242;
       padding: 20px;
       border-radius: 10px;
-      width: fit-content;
-      /* display: flex; */
       display: none;
       flex-direction: column;
       align-items: flex-start;
-      justify-content: center;
       position: absolute;
       top: 50%;
       left: 50%;
@@ -75,9 +85,6 @@
       box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
     }
 
-    #addNoteForm textarea {
-      height: 130px;
-    }
     #noteColor {
       width: 30px;
       height: 30px;
@@ -86,8 +93,40 @@
     #addNoteForm label,
     #addNoteForm input,
     #addNoteForm textarea {
-      display: block;
       margin-bottom: 10px;
+    }
+
+    #confirmForm {
+      background-color: #424242;
+      padding: 20px;
+      border-radius: 10px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    #confirmForm h3 {
+      margin-bottom: 20px;
+    }
+
+    #confirmForm button {
+      margin-bottom: 10px;
+    }
+
+    #custom-menu {
+      background-color: #424242;
+      padding: 10px;
+      border-radius: 10px;
+      flex-direction: column;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.5);
     }
 
 

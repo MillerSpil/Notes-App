@@ -1,21 +1,28 @@
-const addNoteButton = document.getElementById('addNote');
+// These are the imports for the canvas and the canvas context
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+
+// These are setting the canvas to the size of the window
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
+
+// This is the array that holds all the notes
 const notes = [];
 
-addNoteButton.addEventListener('click', () => {
+// This is the event listener to show the add note form
+document.getElementById('addNote').addEventListener('click', () => {
   document.getElementById('addNoteForm').style.display = 'flex';
+  noteFormSetting = 'add';
 });
 
+// This is the event listener to submit the add note form or the edit note form
 document.getElementById('noteSubmit').addEventListener('click', (event) => {
   event.preventDefault();
   const title = document.getElementById('noteTitle').value;
   const text = document.getElementById('noteText').value;
   const color = document.getElementById('noteColor').value;
   if (title && text && color) {
-    newNote(title, text, color);
+    Note.newNote(title, text, color);
     document.getElementById('addNoteForm').style.display = 'none';
     document.getElementById('noteTitle').value = '';
     document.getElementById('noteText').value = '';
@@ -23,29 +30,36 @@ document.getElementById('noteSubmit').addEventListener('click', (event) => {
   }
 });
 
-function newNote(title, text, color, x, y) {
-  if (!x && !y) {
-    x = Math.random() * (canvas.width - 200);
-    y = Math.random() * (canvas.height - 200);
-  }
-  const note = new Note(x, y, 200, 200, color, title, text);
-  notes.push(note);
+// This is the function that is called to confirm a change to a note
+// It returns a promise that resolves to true if the user confirms the change
+// and resolves to false if the user declines the change
+function confirmChange() {
+  return new Promise((resolve, reject) => {
+    const confirmForm = document.getElementById('confirmForm');
+    confirmForm.style.display = 'flex';
+    
+    document.getElementById('changeConfirm').addEventListener('click', (event) => {
+      event.preventDefault();
+      confirmForm.style.display = 'none';
+      resolve(true);
+    });
+    
+    document.getElementById('changeDecline').addEventListener('click', (event) => {
+      event.preventDefault();
+      confirmForm.style.display = 'none';
+      resolve(false);
+    });    
+  });
 }
 
+// This is the Note class that is used to create and draw the notes
 class Note {
   constructor(x, y, width, height, color, title, text) {
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.color = color;
-    this.title = title;
-    this.text = text;
+    Object.assign(this, { x, y, width, height, color, title, text });
   }
 
   draw() {
-    const symbolX = this.x + this.width - 10;
-    const symbolY = this.y + this.height - 10;
+    //Note
     ctx.fillStyle = '#e0e0e0';
     ctx.fillRect(this.x, this.y, this.width, this.height);
     ctx.fillStyle = '#000000';
@@ -57,84 +71,66 @@ class Note {
     ctx.font = '15px Arial';
     ctx.fillText(this.text, this.x + 10, this.y + 70);
 
-    //draw x symbol
+    //Arrow Symbol
     ctx.beginPath();
-    ctx.moveTo(symbolX, symbolY);
-    ctx.lineTo(symbolX - 10, symbolY - 10);
-    ctx.moveTo(symbolX - 10, symbolY);
-    ctx.lineTo(symbolX, symbolY - 10);
-    ctx.stroke();
-
-    //draw edit symbol in the top right corner
-    ctx.beginPath();
-    ctx.moveTo(this.x + this.width - 10, this.y + 10);
-    ctx.lineTo(this.x + this.width - 20, this.y + 10);
-    ctx.lineTo(this.x + this.width - 20, this.y + 20);
-    ctx.lineTo(this.x + this.width - 10, this.y + 20);
-    ctx.lineTo(this.x + this.width - 10, this.y + 10);
-    ctx.stroke();
+    ctx.moveTo(this.x + this.width - 20, this.y + this.height - 20);
+    ctx.lineTo(this.x + this.width - 10, this.y + this.height - 20);
+    ctx.lineTo(this.x + this.width - 20, this.y + this.height - 10);
+    ctx.lineTo(this.x + this.width - 20, this.y + this.height - 20);
+    ctx.fillStyle = this.color;
+    ctx.fill();
+    ctx.closePath();
   }
+
+  static newNote(title, text, color, x, y) {
+    if (!x && !y) {
+      x = Math.random() * (canvas.width - 200);
+      y = Math.random() * (canvas.height - 200);
+    }
+    const note = new Note(x, y, 200, 200, color, title, text);
+    notes.push(note);
+  }
+  
 }
 
-
-canvas.addEventListener('mousedown', (e) => {
-    const mouse = {
-      x: e.clientX,
-      y: e.clientY
+// This is for dragging the notes around
+canvas.addEventListener('mousedown', e => {
+  const mouse = { x: e.clientX, y: e.clientY };
+  let topmostNote = null;
+  for (let i = notes.length - 1; i >= 0; i--) {
+    const note = notes[i];
+    if (mouse.x > note.x && mouse.x < note.x + note.width && mouse.y > note.y && mouse.y < note.y + note.height) {
+      topmostNote = note;
+      break;
+    }
+  }
+  if (topmostNote) {
+    let dx = mouse.x - topmostNote.x, dy = mouse.y - topmostNote.y;
+    const onDrag = e => {
+      topmostNote.x = e.clientX - dx;
+      topmostNote.y = e.clientY - dy;
     };
-    let topmostNote = null;
-    for (let i = notes.length - 1; i >= 0; i--) {
-      if (
-        mouse.x > notes[i].x &&
-        mouse.x < notes[i].x + notes[i].width &&
-        mouse.y > notes[i].y &&
-        mouse.y < notes[i].y + notes[i].height
-      ) {
-        topmostNote = notes[i];
-        break;
-      }
-    }
-    if (topmostNote) {
-      const dx = mouse.x - topmostNote.x;
-      const dy = mouse.y - topmostNote.y;
-      canvas.addEventListener('mousemove', dragNote);
-      function dragNote(e) {
-        const mouse = {
-          x: e.clientX,
-          y: e.clientY
-        };
-        topmostNote.x = mouse.x - dx;
-        topmostNote.y = mouse.y - dy;
-      }
-      canvas.addEventListener('mouseup', () => {
-        canvas.removeEventListener('mousemove', dragNote);
-      });
-    }
-  });
-
-canvas.addEventListener('dblclick', (e) => {
-    const mouse = {
-        x: e.clientX,
-        y: e.clientY
-    };
-    let topmostNote = null;
-    for (let i = notes.length - 1; i >= 0; i--) {
-        if (
-            mouse.x > notes[i].x &&
-            mouse.x < notes[i].x + notes[i].width &&
-            mouse.y > notes[i].y &&
-            mouse.y < notes[i].y + notes[i].height
-        ) {
-            topmostNote = notes[i];
-            break;
-        }
-    }
-    if (topmostNote) {
-        notes.splice(notes.indexOf(topmostNote), 1);
-        notes.push(topmostNote);
-    }
+    canvas.addEventListener('mousemove', onDrag);
+    canvas.addEventListener('mouseup', () => canvas.removeEventListener('mousemove', onDrag));
+  }
 });
 
+// This is for double clicking on a note to bring it to the front
+canvas.addEventListener('dblclick', (e) => {
+  const { clientX: x, clientY: y } = e;
+  const topmostNote = notes.find((note) =>
+    x > note.x &&
+    x < note.x + note.width &&
+    y > note.y &&
+    y < note.y + note.height
+  );
+  if (topmostNote) {
+    notes.splice(notes.indexOf(topmostNote), 1);
+    notes.push(topmostNote);
+  }
+});
+
+// This is clearing the canvas and redrawing the notes every frame
 function animate() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let i = 0; i < notes.length; i++) {
@@ -142,30 +138,92 @@ function animate() {
   }
   requestAnimationFrame(animate);
 }
-
 animate();
 
-// before page reload, save notes to local storage
+// This is saving the notes to local storage on page unload
 window.addEventListener('beforeunload', () => {
   localStorage.setItem('notes', JSON.stringify(notes));
 });
 
-// on page load, get notes from local storage
+// This is loading the notes from local storage on page load
 window.addEventListener('load', () => {
   const savedNotes = JSON.parse(localStorage.getItem('notes'));
-  if (savedNotes) {
-    for (let i = 0; i < savedNotes.length; i++) {
-      const note = savedNotes[i];
-      if (note.x >= canvas.width || note.x <= 0){
-        note.x = Math.random() * (canvas.width - 200);
-        note.y = Math.random() * (canvas.height - 200);
-      }
-      if (note.y >= canvas.height || note.y <= 0){
-        note.x = Math.random() * (canvas.width - 200);
-        note.y = Math.random() * (canvas.height - 200);
-      }
-      newNote(note.title, note.text, note.color, note.x, note.y);
+  if (!savedNotes) return;
+  
+  savedNotes.forEach(note => {
+    if (note.x >= canvas.width || note.x <= 0 || note.y >= canvas.height || note.y <= 0) {
+      note.x = Math.random() * (canvas.width - 200);
+      note.y = Math.random() * (canvas.height - 200);
     }
-  }
+    Note.newNote(note.title, note.text, note.color, note.x, note.y);
+  });
 });
 
+// This is the class that is used to create the context menu
+class CustomContextMenu {
+  constructor(items) {
+    this.items = items;
+    this.menu = document.createElement('div');
+    this.menu.style.position = 'absolute';
+    this.menu.style.backgroundColor = '#424242';
+    this.menu.style.border = '1px solid black';
+    this.menu.style.padding = '5px';
+    this.menu.style.display = 'none';
+    document.body.appendChild(this.menu);
+
+    document.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      this.showMenu(e.clientX, e.clientY);
+    });
+
+    document.addEventListener('click', () => {
+      this.hideMenu();
+    });
+  }
+
+  showMenu(x, y) {
+    this.menu.innerHTML = '';
+    for (let i = 0; i < this.items.length; i++) {
+      const item = document.createElement('div');
+      item.innerText = this.items[i].label;
+      item.addEventListener('click', this.items[i].action);
+      this.menu.appendChild(item);
+    }
+    this.menu.style.display = 'block';
+    this.menu.style.left = x + 'px';
+    this.menu.style.top = y + 'px';
+  }
+
+  hideMenu() {
+    this.menu.style.display = 'none';
+  }
+
+  setItems(items) {
+    this.items = items;
+  }
+}
+
+// This is a context menu that is used for many functions in the app
+const menu = new CustomContextMenu([
+  { label: 'Delete Note', action: () => deleteNote() }
+]);
+
+// This is the function that is called when the user clicks on the
+// delete note button
+async function deleteNote() {
+  const mouse = { x: event.clientX, y: event.clientY };
+  let topmostNote = null;
+  for (let i = notes.length - 1; i >= 0; i--) {
+    const note = notes[i];
+    if (mouse.x > note.x && mouse.x < note.x + note.width && mouse.y > note.y && mouse.y < note.y + note.height) {
+      topmostNote = note;
+      break;
+    }
+  }
+  if (topmostNote) {
+    const confirmed = await confirmChange();
+    if (confirmed) {
+      notes.splice(notes.indexOf(topmostNote), 1);
+    }
+  }
+}
